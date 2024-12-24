@@ -15,5 +15,10 @@ COPY app.py /app/app.py
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
+# 暴露端口 22
+EXPOSE 22
+
+# 启动 SSH 服务
+CMD ["/usr/sbin/sshd", "-D"]
 # 指定运行的命令
 CMD ["python", "app.py"]
