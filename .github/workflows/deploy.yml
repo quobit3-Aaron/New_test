@@ -1,0 +1,63 @@
+
+name: Deploy to ACR and Run on ACI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 检出代码
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 登录到 Azure 容器注册表 (ACR)
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # 构建和推送 Docker 镜像到 ACR
+    - name: Build and push Docker image
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build and push
+      run: |
+        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/app:latest .
+        docker push ${{ secrets.ACR_LOGIN_SERVER }}/app:latest
+
+  deploy-to-aci:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+    # 登录到 Azure
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # 部署到 Azure 容器实例 (ACI)
+    - name: Deploy to ACI
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az container create             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}             --name app-container             --image ${{ secrets.ACR_LOGIN_SERVER }}/app:latest             --registry-login-server ${{ secrets.ACR_LOGIN_SERVER }}             --registry-username ${{ secrets.ACR_USERNAME }}             --registry-password ${{ secrets.ACR_PASSWORD }}             --cpu 1             --memory 1.5             --restart-policy OnFailure             --command-line "python app.py"
+
+  save-to-onedrive:
+    needs: deploy-to-aci
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Save results to OneDrive
+      run: |
+        pip install onedrive-sdk
+        python save_to_onedrive.py
