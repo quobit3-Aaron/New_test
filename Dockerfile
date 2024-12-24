@@ -1,16 +1,19 @@
 
-# Ê¹ÓÃ»ù´¡¾µÏñ
+# ä½¿ç”¨åŸºç¡€é•œåƒ
 FROM python:3.10-slim
 
-# ÉèÖÃ¹¤×÷Ä¿Â¼
+# è®¾ç½®å·¥ä½œç›®å½•
 WORKDIR /app
 
-# ¸´ÖÆÓ¦ÓÃÎÄ¼şµ½ÈİÆ÷ÖĞ
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+
+# å¤åˆ¶åº”ç”¨æ–‡ä»¶åˆ°å®¹å™¨ä¸­
 COPY app.py /app/app.py
 
-# °²×°±ØÒªµÄÒÀÀµ
+# å®‰è£…å¿…è¦çš„ä¾èµ–
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Ö¸¶¨ÔËĞĞµÄÃüÁî
+# æŒ‡å®šè¿è¡Œçš„å‘½ä»¤
 CMD ["python", "app.py"]
