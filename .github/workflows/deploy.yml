@@ -31,9 +31,9 @@ jobs:
     # 构建和推送 Docker 镜像到 ACR
     - name: Build and push Docker image
       run: |
-        # 构建镜像
-        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/test_a:the_one .
-        # 推送镜像
+        # 构建镜像，支持动态传递 SSH 用户密码
+        docker build --build-arg SSH_PASSWORD=${{ secrets.SSH_PASSWORD }} -t ${{ secrets.ACR_LOGIN_SERVER }}/test_a:the_one .
+        # 推送镜像到 ACR
         docker push ${{ secrets.ACR_LOGIN_SERVER }}/test_a:the_one
 
   deploy-to-aci:
@@ -62,14 +62,21 @@ jobs:
             --cpu 1 \
             --memory 1.5 \
             --restart-policy OnFailure \
-            --command-line "python app.py"
+            --ip-address Public \
+            --ports 22 5000 \
+            --environment-variables "FLASK_ENV=production"
 
   save-to-onedrive:
     needs: deploy-to-aci
     runs-on: ubuntu-latest
 
     steps:
-    - name: Save results to OneDrive
+    # 安装必要的依赖
+    - name: Install Python Dependencies
       run: |
         pip install onedrive-sdk
+
+    # 保存结果到 OneDrive
+    - name: Save results to OneDrive
+      run: |
         python save_to_onedrive.py
