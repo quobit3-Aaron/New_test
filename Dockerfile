@@ -5,9 +5,9 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # 安装必要的软件，包括 SSH 服务和 Python 的依赖
-RUN apt-get update && apt-get install -y \
-    openssh-server \
-    && mkdir /var/run/sshd
+RUN apt-get update && apt-get install -y openssh-server \
+    && mkdir /var/run/sshd \
+    && ssh-keygen -A
 
 # 生成 SSH 主机密钥（如果没有会导致 SSH 服务无法启动）
 RUN ssh-keygen -A
