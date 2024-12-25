@@ -1,0 +1,6 @@
+# SSH 配置文件
+PasswordAuthentication yes
+PermitRootLogin no
+MaxSessions 10
+AllowUsers testuser dev1 dev2
+Subsystem sftp /usr/lib/openssh/sftp-server
